@@ -33,12 +33,16 @@ func updateCommand() cli.Command {
 		Usage:  "update a provisioner",
 		UsageText: `**step beta ca provisioner update** <name> [**--public-key**=<file>]
 [**--private-key**=<file>] [**--create**] [**--password-file**=<file>]
-[**--ca-url**=<uri>] [**--root**=<file>]
+[**--admin-cert**=<file>] [**--admin-key**=<file>] [**--admin-provisioner=<name>]
+[**--admin-subject**=<subject>] [**--password-file**=<file>] [**--ca-url**=<uri>]
+[**--root**=<file>] [**--context**=<context>]
 
 ACME
 
 **step beta ca provisioner update** <name> [**--force-cn**]
-[**--ca-url**=<uri>] [**--root**=<file>]
+[**--admin-cert**=<file>] [**--admin-key**=<file>] [**--admin-provisioner=<name>]
+[**--admin-subject**=<subject>] [**--password-file**=<file>] [**--ca-url**=<uri>]
+[**--root**=<file>] [**--context**=<context>]
 
 OIDC
 
@@ -48,17 +52,23 @@ OIDC
 [**--domain**=<domain>] [**--remove-domain**=<domain>]
 [**--group**=<group>] [**--remove-group**=<group>]
 [**--admin**=<email>]... [**--remove-admin**=<email>]...
-[**--ca-url**=<uri>] [**--root**=<file>]
+[**--admin-cert**=<file>] [**--admin-key**=<file>] [**--admin-provisioner=<name>]
+[**--admin-subject**=<subject>] [**--password-file**=<file>] [**--ca-url**=<uri>]
+[**--root**=<file>] [**--context**=<context>]
 
 X5C
 
 **step beta ca provisioner update** <name> **--x5c-root**=<file>
-[**--ca-url**=<uri>] [**--root**=<file>]
+[**--admin-cert**=<file>] [**--admin-key**=<file>] [**--admin-provisioner=<name>]
+[**--admin-subject**=<subject>] [**--password-file**=<file>] [**--ca-url**=<uri>]
+[**--root**=<file>] [**--context**=<context>]
 
 Kubernetes Service Account
 
 **step beta ca provisioner update** <name> [**--public-key**=<file>]
-[**--ca-url**=<uri>] [**--root**=<file>]
+[**--admin-cert**=<file>] [**--admin-key**=<file>] [**--admin-provisioner=<name>]
+[**--admin-subject**=<subject>] [**--password-file**=<file>] [**--ca-url**=<uri>]
+[**--root**=<file>] [**--context**=<context>]
 
 IID (AWS/GCP/Azure)
 
@@ -69,7 +79,9 @@ IID (AWS/GCP/Azure)
 [**--azure-tenant**=<id>] [**--azure-resource-group**=<name>]
 [**--instance-age**=<duration>] [**--iid-roots**=<file>]
 [**--disable-custom-sans**] [**--disable-trust-on-first-use**]
-[**--ca-url**=<uri>] [**--root**=<file>]`,
+[**--admin-cert**=<file>] [**--admin-key**=<file>] [**--admin-provisioner=<name>]
+[**--admin-subject**=<subject>] [**--password-file**=<file>] [**--ca-url**=<uri>]
+[**--root**=<file>] [**--context**=<context>]`,
 		Flags: []cli.Flag{
 			cli.StringFlag{
 				Name:  "name",
@@ -176,6 +188,7 @@ provisioning tokens.`,
 			flags.PasswordFile,
 			flags.CaURL,
 			flags.Root,
+			flags.Context,
 		},
 		Description: `**step ca provisioner update** updates a provisioner in the CA configuration.
 

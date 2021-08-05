@@ -5,7 +5,7 @@ import (
 
 	"github.com/urfave/cli"
 	"go.step.sm/cli-utils/command"
-	"go.step.sm/cli-utils/config"
+	"go.step.sm/cli-utils/step"
 )
 
 func init() {
@@ -90,14 +90,14 @@ $ step path --profile
 		},
 		Action: cli.ActionFunc(func(ctx *cli.Context) error {
 			if ctx.Bool("base") {
-				fmt.Println(config.StepBasePath())
+				fmt.Println(step.BasePath())
 				return nil
 			}
 			if ctx.Bool("profile") {
-				fmt.Println(config.StepProfilePath())
+				fmt.Println(step.ProfilePath())
 				return nil
 			}
-			fmt.Println(config.StepPath())
+			fmt.Println(step.Path())
 			return nil
 		}),
 	}

@@ -17,7 +17,7 @@ import (
 	"github.com/smallstep/cli/usage"
 	"github.com/urfave/cli"
 	"go.step.sm/cli-utils/command"
-	"go.step.sm/cli-utils/config"
+	"go.step.sm/cli-utils/step"
 
 	// Enabled commands
 	_ "github.com/smallstep/cli/command/base64"
@@ -48,8 +48,8 @@ var Version = "N/A"
 var BuildTime = "N/A"
 
 func init() {
-	config.Set("Smallstep CLI", Version, BuildTime)
-	ca.UserAgent = config.Version()
+	step.Set("Smallstep CLI", Version, BuildTime)
+	ca.UserAgent = step.Version()
 	rand.Seed(time.Now().UnixNano())
 }
 
@@ -71,7 +71,7 @@ func main() {
 	app.Name = "step"
 	app.HelpName = "step"
 	app.Usage = "plumbing for distributed systems"
-	app.Version = config.Version()
+	app.Version = step.Version()
 	app.Commands = command.Retrieve()
 	app.Flags = append(app.Flags, cli.HelpFlag)
 	app.EnableBashCompletion = true
@@ -118,8 +118,8 @@ func main() {
 func panicHandler() {
 	if r := recover(); r != nil {
 		if os.Getenv("STEPDEBUG") == "1" {
-			fmt.Fprintf(os.Stderr, "%s\n", config.Version())
-			fmt.Fprintf(os.Stderr, "Release Date: %s\n\n", config.ReleaseDate())
+			fmt.Fprintf(os.Stderr, "%s\n", step.Version())
+			fmt.Fprintf(os.Stderr, "Release Date: %s\n\n", step.ReleaseDate())
 			panic(r)
 		} else {
 			fmt.Fprintln(os.Stderr, "Something unexpected happened.")

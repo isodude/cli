@@ -15,10 +15,13 @@ import (
 
 func getCommand() cli.Command {
 	return cli.Command{
-		Name:      "get",
-		Action:    cli.ActionFunc(getAction),
-		Usage:     "get a provisioner from the CA configuration",
-		UsageText: `**step beta ca provisioner get** <name> [**--ca-url**=<uri>] [**--root**=<file>]`,
+		Name:   "get",
+		Action: cli.ActionFunc(getAction),
+		Usage:  "get a provisioner from the CA configuration",
+		UsageText: `**step beta ca provisioner get** <name>
+[**--admin-cert**=<file>] [**--admin-key**=<file>] [**--admin-provisioner=<name>]
+[**--admin-subject**=<subject>] [**--password-file**=<file>] [**--ca-url**=<uri>]
+[**--root**=<file>] [**--context**=<context>]`,
 		Flags: []cli.Flag{
 			flags.AdminCert,
 			flags.AdminKey,
@@ -26,6 +29,7 @@ func getCommand() cli.Command {
 			flags.AdminSubject,
 			flags.CaURL,
 			flags.Root,
+			flags.Context,
 		},
 		Description: `**step beta ca provisioner get** gets a provisioner from the CA configuration.
 

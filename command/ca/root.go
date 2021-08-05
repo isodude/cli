@@ -23,7 +23,7 @@ func rootComand() cli.Command {
 		Action: command.ActionFunc(rootAction),
 		Usage:  "download and validate the root certificate",
 		UsageText: `**step ca root** [<root-file>]
-[**--ca-url**=<uri>] [**--fingerprint**=<fingerprint>]`,
+[**--ca-url**=<uri>] [**--fingerprint**=<fingerprint>] [**--context**=<context>]`,
 		Description: `**step ca root** downloads and validates the root certificate from the
 certificate authority.
 
@@ -58,9 +58,10 @@ Print the root certificate using the flags set by <step ca bootstrap>:
 $ step ca root
 '''`,
 		Flags: []cli.Flag{
-			flags.CaURL,
 			flags.Force,
 			fingerprintFlag,
+			flags.CaURL,
+			flags.Context,
 		},
 	}
 }

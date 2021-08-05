@@ -18,7 +18,7 @@ import (
 	"github.com/smallstep/cli/utils/cautils"
 	"github.com/urfave/cli"
 	"go.step.sm/cli-utils/command"
-	"go.step.sm/cli-utils/config"
+	"go.step.sm/cli-utils/step"
 	"golang.org/x/crypto/ssh"
 )
 
@@ -29,9 +29,9 @@ func configCommand() cli.Command {
 		Usage:  "configures ssh to be used with certificates",
 		UsageText: `**step ssh config**
 [**--team**=<name>] [**--host**] [**--set**=<key=value>] [**--set-file**=<file>]
-[**--dry-run**] [**--roots**] [**--federation**]
-[**--force**] [**--ca-url**=<uri>] [**--root**=<file>]
-[**--offline**] [**--ca-config**=<file>] [**--team-url**=<url>]`,
+[**--dry-run**] [**--roots**] [**--federation**] [**--force**]
+[**--offline**] [**--ca-config**=<file>]
+[**--ca-url**=<uri>] [**--root**=<file>] [**--context**=<context]`,
 		Description: `**step ssh config** configures SSH to be used with certificates. It also supports
 flags to inspect the root certificates used to sign the certificates.
 
@@ -87,11 +87,12 @@ times to set multiple variables.`,
 			},
 			flags.TemplateSetFile,
 			flags.DryRun,
+			flags.Force,
+			flags.CaConfig,
 			flags.CaURL,
 			flags.Root,
 			flags.Offline,
-			flags.CaConfig,
-			flags.Force,
+			flags.Context,
 		},
 	}
 }
@@ -179,7 +180,7 @@ func configAction(ctx *cli.Context) (recoverErr error) {
 
 	data := map[string]string{
 		"GOOS":     runtime.GOOS,
-		"StepPath": config.StepPath(),
+		"StepPath": step.Path(),
 	}
 	if len(sets) > 0 {
 		for _, s := range sets {
@@ -258,7 +259,7 @@ func configAction(ctx *cli.Context) (recoverErr error) {
 
 	if ctx.Bool("dry-run") {
 		for _, t := range templates {
-			ui.Printf("{{ \"%s\" | bold }}\n", config.StepAbs(t.Path))
+			ui.Printf("{{ \"%s\" | bold }}\n", step.Abs(t.Path))
 			fmt.Println(string(t.Content))
 		}
 		return nil
@@ -268,7 +269,7 @@ func configAction(ctx *cli.Context) (recoverErr error) {
 		if err := t.Write(); err != nil {
 			return err
 		}
-		ui.Printf(`{{ "%s" | green }} {{ "%s" | bold }}`+"\n", ui.IconGood, config.StepAbs(t.Path))
+		ui.Printf(`{{ "%s" | green }} {{ "%s" | bold }}`+"\n", ui.IconGood, step.Abs(t.Path))
 	}
 
 	return nil

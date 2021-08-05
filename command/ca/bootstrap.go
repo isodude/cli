@@ -17,7 +17,7 @@ import (
 	"github.com/smallstep/truststore"
 	"github.com/urfave/cli"
 	"go.step.sm/cli-utils/command"
-	"go.step.sm/cli-utils/config"
+	"go.step.sm/cli-utils/step"
 )
 
 func bootstrapCommand() cli.Command {
@@ -98,7 +98,7 @@ func bootstrapAction(ctx *cli.Context) error {
 	fingerprint := ctx.String("fingerprint")
 	team := ctx.String("team")
 	rootFile := pki.GetRootCAPath()
-	configFile := filepath.Join(config.StepPath(), "config", "defaults.json")
+	configFile := filepath.Join(step.Path(), "config", "defaults.json")
 	redirectURL := ctx.String("redirect-url")
 
 	switch {

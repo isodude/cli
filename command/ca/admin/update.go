@@ -19,16 +19,15 @@ func updateCommand() cli.Command {
 		Action: cli.ActionFunc(updateAction),
 		Usage:  "update an admin",
 		UsageText: `**step beta ca admin update** <subject> [**--super**] [**--provisioner**=<name>]
-[**--ca-url**=<uri>] [**--root**=<file>]`,
+[**--admin-cert**=<file>] [**--admin-key**=<file>] [**--admin-provisioner=<name>]
+[**--admin-subject**=<subject>] [**--password-file**=<file>] [**--ca-url**=<uri>]
+[**--root**=<file>] [**--context**=<context]`,
 		Flags: []cli.Flag{
 			cli.BoolFlag{
 				Name:  "super",
 				Usage: `Update the admin with super-admin privileges.`,
 			},
-			cli.StringFlag{
-				Name:  "provisioner",
-				Usage: `Filter admin by provisioner name`,
-			},
+			provisionerFilterFlag,
 			flags.AdminCert,
 			flags.AdminKey,
 			flags.AdminProvisioner,
@@ -36,6 +35,7 @@ func updateCommand() cli.Command {
 			flags.PasswordFile,
 			flags.CaURL,
 			flags.Root,
+			flags.Context,
 		},
 		Description: `**step beta ca admin update** updates an admin.
 

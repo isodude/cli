@@ -7,8 +7,8 @@ import (
 	"github.com/smallstep/cli/errs"
 	"github.com/urfave/cli"
 	"go.step.sm/cli-utils/command"
-	"go.step.sm/cli-utils/config"
 	"go.step.sm/cli-utils/fileutil"
+	"go.step.sm/cli-utils/step"
 )
 
 func setCommand() cli.Command {
@@ -37,7 +37,7 @@ $ step context set alpha-one
 
 func setAction(ctx *cli.Context) error {
 	ctxStr := ctx.Args().Get(0)
-	if _, ok := config.GetContext(ctxStr); !ok {
+	if _, ok := step.GetContext(ctxStr); !ok {
 		return errors.Errorf("context '%s' not found", ctxStr)
 	}
 
@@ -50,8 +50,8 @@ func setAction(ctx *cli.Context) error {
 		return err
 	}
 	ctx.Set("force", "true")
-	if err = fileutil.WriteFile(config.StepCurrentContextFile(), b, 0644); err != nil {
-		return errs.FileError(err, config.StepCurrentContextFile())
+	if err = fileutil.WriteFile(step.CurrentContextFile(), b, 0644); err != nil {
+		return errs.FileError(err, step.CurrentContextFile())
 	}
 	return nil
 }

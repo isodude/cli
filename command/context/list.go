@@ -4,7 +4,7 @@ import (
 	"github.com/smallstep/cli/ui"
 	"github.com/urfave/cli"
 	"go.step.sm/cli-utils/command"
-	"go.step.sm/cli-utils/config"
+	"go.step.sm/cli-utils/step"
 )
 
 func listCommand() cli.Command {
@@ -28,9 +28,9 @@ beta.ca.smallstep.com
 }
 
 func listAction(ctx *cli.Context) error {
-	cm := config.GetContextMap()
+	cm := step.GetContextMap()
 
-	def := config.GetCurrentContext()
+	def := step.GetCurrentContext()
 	if def != nil {
 		ui.Printf("▶ %s\n", def.Name)
 	}
