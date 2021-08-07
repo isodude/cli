@@ -2,8 +2,12 @@ package ca
 
 import (
 	"encoding/json"
+	"io/ioutil"
+	"net"
+	"net/url"
 	"os"
 	"path/filepath"
+	"strings"
 
 	"github.com/pkg/errors"
 	"github.com/smallstep/certificates/ca"
@@ -27,7 +31,7 @@ func bootstrapCommand() cli.Command {
 		Usage:  "initialize the environment to use the CA commands",
 		UsageText: `**step ca bootstrap**
 [**--ca-url**=<uri>] [**--fingerprint**=<fingerprint>] [**--install**]
-[**--team**=name] [**--team-url**=url] [**--redirect-url**=<url>]`,
+[**--team**=<name>] [**--authority**=<name>] [**--team-url**=<uri>] [**--redirect-url**=<uri>]`,
 		Description: `**step ca bootstrap** downloads the root certificate from the certificate
 authority and sets up the current environment to use it.
 
@@ -76,6 +80,10 @@ $ step ca bootstrap --team superteam --team-url https://config.example.org/<>
 				Usage: "Install the root certificate into the system truststore.",
 			},
 			flags.Team,
+			cli.StringFlag{
+				Name:  "authority",
+				Usage: `The <name> of the authority to bootstrap.`,
+			},
 			flags.TeamURL,
 			flags.RedirectURL,
 			flags.Force,
@@ -97,13 +105,16 @@ func bootstrapAction(ctx *cli.Context) error {
 	}
 	fingerprint := ctx.String("fingerprint")
 	team := ctx.String("team")
-	rootFile := pki.GetRootCAPath()
-	configFile := filepath.Join(step.Path(), "config", "defaults.json")
+	authority := ctx.String("authority")
 	redirectURL := ctx.String("redirect-url")
 
 	switch {
+	case team != "" && authority != "":
+		return cautils.BootstrapAuthority(ctx, team, authority)
 	case team != "":
 		return cautils.BootstrapTeam(ctx, team)
+	case authority != "":
+		return errs.RequiredWithFlag(ctx, "authority", "team")
 	case len(caURL) == 0:
 		return errs.RequiredFlag(ctx, "ca-url")
 	case len(fingerprint) == 0:
@@ -121,6 +132,43 @@ func bootstrapAction(ctx *cli.Context) error {
 	if err != nil {
 		return errors.Wrap(err, "error downloading root certificate")
 	}
+
+	if step.IsContextEnabled() {
+		u, err := url.Parse(caURL)
+		if err != nil {
+			return err
+		}
+		host := u.Host
+		if strings.Contains(host, ":") {
+			if host, _, err = net.SplitHostPort(host); err != nil {
+				return err
+			}
+		}
+		stepCtx := &step.Context{
+			Name:      host,
+			Authority: host,
+			Profile:   host,
+		}
+		if err := step.AddContext(stepCtx); err != nil {
+			return err
+		}
+		if err := step.SetCurrentContext(stepCtx.Name); err != nil {
+			return err
+		}
+
+		profileDefaultsFile := filepath.Join(step.ProfilePath(), "config", "defaults.json")
+
+		if err := os.MkdirAll(filepath.Dir(profileDefaultsFile), 0700); err != nil {
+			return errs.FileError(err, profileDefaultsFile)
+		}
+		if err := ioutil.WriteFile(profileDefaultsFile, []byte("{}"), 0600); err != nil {
+			return errs.FileError(err, profileDefaultsFile)
+		}
+		ui.Printf("The profile configuration has been saved in %s.\n", profileDefaultsFile)
+	}
+
+	rootFile := pki.GetRootCAPath()
+	configFile := filepath.Join(step.Path(), "config", "defaults.json")
 
 	if err = os.MkdirAll(filepath.Dir(rootFile), 0700); err != nil {
 		return errs.FileError(err, rootFile)
@@ -158,7 +206,7 @@ func bootstrapAction(ctx *cli.Context) error {
 		return err
 	}
 
-	ui.Printf("Your configuration has been saved in %s.\n", configFile)
+	ui.Printf("The authority configuration has been saved in %s.\n", configFile)
 
 	if ctx.Bool("install") {
 		ui.Printf("Installing the root certificate in the system truststore... ")
