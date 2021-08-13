@@ -5,17 +5,22 @@ import (
 	"crypto/x509"
 	"fmt"
 	"io"
+	"os"
+	"path/filepath"
+	"regexp"
 	"strings"
 	"time"
 
 	"github.com/smallstep/certificates/cas/apiv1"
 	"github.com/smallstep/certificates/pki"
 	"github.com/smallstep/cli/crypto/pemutil"
+	"github.com/smallstep/cli/flags"
 	"github.com/smallstep/cli/ui"
 	"github.com/smallstep/cli/utils"
 	"github.com/urfave/cli"
 	"go.step.sm/cli-utils/command"
 	"go.step.sm/cli-utils/errs"
+	"go.step.sm/cli-utils/step"
 )
 
 func initCommand() cli.Command {
@@ -27,7 +32,8 @@ func initCommand() cli.Command {
 [**--root**=<file>] [**--key**=<file>] [**--pki**] [**--ssh**] [**--name**=<name>]
 [**--dns**=<dns>] [**--address**=<address>] [**--provisioner**=<name>]
 [**--provisioner-password-file**=<file>] [**--password-file**=<file>]
-[**--with-ca-url**=<url>] [**--no-db**]`,
+[**--with-ca-url**=<url>] [**--no-db**]
+[**--context-name**=<string>] [**--context-profile**=<string>]`,
 		Description: `**step ca init** command initializes a public key infrastructure (PKI) to be
  used by the Certificate Authority.`,
 		Flags: []cli.Flag{
@@ -102,6 +108,8 @@ Cloud.`,
 				Name:  "no-db",
 				Usage: `Generate a CA configuration without the DB stanza. No persistence layer.`,
 			},
+			flags.ContextName,
+			flags.ContextProfile,
 		},
 	}
 }
@@ -257,6 +265,39 @@ func initAction(ctx *cli.Context) (err error) {
 		}
 	}
 
+	// Set appropriate context.
+	fi, err := os.Stat(filepath.Join(step.BasePath(), "config"))
+	configDirExists := !os.IsNotExist(err) && fi.IsDir()
+	fi, err = os.Stat(filepath.Join(step.BasePath(), "authorities"))
+	authoritiesDirExists := !os.IsNotExist(err) && fi.IsDir()
+
+	if !configDirExists || authoritiesDirExists {
+		reg, err := regexp.Compile("[^a-zA-Z0-9]+")
+		if err != nil {
+			return err
+		}
+		processedName := strings.ToLower(strings.ReplaceAll(reg.ReplaceAllString(name, ""), " ", "-"))
+
+		contextName := ctx.String("context-name")
+		if contextName == "" {
+			contextName = processedName
+		}
+		contextProfile := ctx.String("context-profile")
+		if contextProfile == "" {
+			contextProfile = processedName
+		}
+		if err := step.AddContext(&step.Context{
+			Name:      contextName,
+			Profile:   contextProfile,
+			Authority: processedName,
+		}); err != nil {
+			return err
+		}
+		if err := step.SwitchCurrentContext(contextName); err != nil {
+			return err
+		}
+	}
+
 	p, err := pki.New(casOptions)
 	if err != nil {
 		return err
@@ -378,6 +419,7 @@ func initAction(ctx *cli.Context) (err error) {
 	if noDB {
 		opts = append(opts, pki.WithoutDB())
 	}
+
 	return p.Save(opts...)
 }
 
