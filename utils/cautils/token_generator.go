@@ -124,9 +124,6 @@ func generateOIDCToken(ctx *cli.Context, p *provisioner.OIDC) (string, error) {
 	if p.ListenAddress != "" {
 		args = append(args, "--listen", p.ListenAddress)
 	}
-	if ctx.IsSet("context") {
-		args = append(args, "--context", ctx.String("context"))
-	}
 	out, err := exec.Step(args...)
 	if err != nil {
 		return "", err
