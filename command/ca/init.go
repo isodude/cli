@@ -7,7 +7,6 @@ import (
 	"io"
 	"os"
 	"path/filepath"
-	"regexp"
 	"strings"
 	"time"
 
@@ -266,44 +265,7 @@ func initAction(ctx *cli.Context) (err error) {
 		}
 	}
 
-	// Set appropriate context.
-	fi, err := os.Stat(filepath.Join(step.BasePath(), "config"))
-	configDirExists := !os.IsNotExist(err) && fi.IsDir()
-	fi, err = os.Stat(filepath.Join(step.BasePath(), "authorities"))
-	authoritiesDirExists := !os.IsNotExist(err) && fi.IsDir()
-
-	if !configDirExists || authoritiesDirExists {
-		reg, err := regexp.Compile("[^a-zA-Z0-9]+")
-		if err != nil {
-			return err
-		}
-		processedName := strings.ToLower(strings.ReplaceAll(reg.ReplaceAllString(name, ""), " ", "-"))
-
-		contextName := ctx.String("context")
-		if contextName == "" {
-			contextName = processedName
-		}
-		contextProfile := ctx.String("profile")
-		if contextProfile == "" {
-			contextProfile = processedName
-		}
-		if err := step.AddContext(&step.Context{
-			Name:      contextName,
-			Profile:   contextProfile,
-			Authority: processedName,
-		}); err != nil {
-			return err
-		}
-		if err := step.SwitchCurrentContext(contextName); err != nil {
-			return err
-		}
-	}
-
-	p, err := pki.New(casOptions)
-	if err != nil {
-		return err
-	}
-
+	var p *pki.PKI
 	if configure {
 		var names string
 		ui.Println("What DNS names or IP addresses would you like to add to your new CA?", ui.WithValue(ctx.String("dns")))
@@ -320,6 +282,41 @@ func initAction(ctx *cli.Context) (err error) {
 				continue
 			}
 			dnsNames = append(dnsNames, strings.TrimSpace(name))
+		}
+
+		// Set appropriate context.
+		_, err = os.Stat(filepath.Join(step.BasePath(), "contexts.json"))
+		contextsMapExists := !os.IsNotExist(err)
+
+		contextName := ctx.String("context")
+		contextProfile := ctx.String("profile")
+		contextAuthority := ctx.String("authority")
+
+		if contextName != "" || contextProfile != "" || contextAuthority != "" || contextsMapExists {
+			if contextName == "" {
+				contextName = dnsNames[0]
+			}
+			if contextProfile == "" {
+				contextProfile = dnsNames[0]
+			}
+			if contextAuthority == "" {
+				contextAuthority = dnsNames[0]
+			}
+			if err := step.AddContext(&step.Context{
+				Name:      contextName,
+				Profile:   contextProfile,
+				Authority: contextAuthority,
+			}); err != nil {
+				return err
+			}
+			if err := step.SwitchCurrentContext(contextName); err != nil {
+				return err
+			}
+		}
+
+		p, err = pki.New(casOptions)
+		if err != nil {
+			return err
 		}
 
 		var address string
@@ -342,6 +339,11 @@ func initAction(ctx *cli.Context) (err error) {
 		p.SetAddress(address)
 		p.SetDNSNames(dnsNames)
 		p.SetCAURL(caURL)
+	} else {
+		p, err = pki.New(casOptions)
+		if err != nil {
+			return err
+		}
 	}
 
 	ui.Println("Choose a password for your CA keys and first provisioner.", ui.WithValue(password))
