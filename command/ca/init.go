@@ -142,8 +142,13 @@ func initAction(ctx *cli.Context) (err error) {
 		return errs.InvalidFlagValue(ctx, "ra", ctx.String("ra"), "CloudCAS")
 	}
 
+	var pkiOpts = []pki.Option{}
+
 	configure := !ctx.Bool("pki")
 	noDB := ctx.Bool("no-db")
+	if noDB {
+		pkiOpts = append(pkiOpts, pki.WithNoDB())
+	}
 	if !configure && noDB {
 		return errs.IncompatibleFlagWithFlag(ctx, "pki", "no-db")
 	}
@@ -265,7 +270,6 @@ func initAction(ctx *cli.Context) (err error) {
 		}
 	}
 
-	var p *pki.PKI
 	if configure {
 		var names string
 		ui.Println("What DNS names or IP addresses would you like to add to your new CA?", ui.WithValue(ctx.String("dns")))
@@ -314,11 +318,6 @@ func initAction(ctx *cli.Context) (err error) {
 			}
 		}
 
-		p, err = pki.New(casOptions)
-		if err != nil {
-			return err
-		}
-
 		var address string
 		ui.Println("What IP and port will your new CA bind to?", ui.WithValue(ctx.String("address")))
 		address, err = ui.Prompt("(e.g. :443 or 127.0.0.1:4343)",
@@ -335,15 +334,21 @@ func initAction(ctx *cli.Context) (err error) {
 			return err
 		}
 
-		p.SetProvisioner(provisioner)
-		p.SetAddress(address)
-		p.SetDNSNames(dnsNames)
-		p.SetCAURL(caURL)
+		pkiOpts = append(pkiOpts,
+			pki.WithProvisioner(provisioner),
+			pki.WithAddress(address),
+			pki.WithDNSNames(dnsNames),
+			pki.WithCaURL(caURL),
+		)
 	} else {
-		p, err = pki.New(casOptions)
-		if err != nil {
-			return err
-		}
+		pkiOpts = append(pkiOpts,
+			pki.WithPKIOnly(),
+		)
+	}
+
+	p, err := pki.New(casOptions, pkiOpts...)
+	if err != nil {
+		return err
 	}
 
 	ui.Println("Choose a password for your CA keys and first provisioner.", ui.WithValue(password))
@@ -414,16 +419,7 @@ func initAction(ctx *cli.Context) (err error) {
 
 	fmt.Println("all done!")
 
-	if !configure {
-		p.TellPKI()
-		return nil
-	}
-	opts := []pki.Option{}
-	if noDB {
-		opts = append(opts, pki.WithoutDB())
-	}
-
-	return p.Save(opts...)
+	return p.Save()
 }
 
 // assertCryptoRand asserts that a cryptographically secure random number

@@ -8,7 +8,7 @@ require (
 	github.com/boombuler/barcode v1.0.1 // indirect
 	github.com/chzyer/readline v0.0.0-20180603132655-2972be24d48e
 	github.com/corpix/uarand v0.1.1 // indirect
-	github.com/google/uuid v1.1.2
+	github.com/google/uuid v1.3.0
 	github.com/icrowley/fake v0.0.0-20180203215853-4178557ae428
 	github.com/kballard/go-shellquote v0.0.0-20180428030007-95032a82bc51 // indirect
 	github.com/manifoldco/promptui v0.8.0
@@ -24,16 +24,16 @@ require (
 	github.com/smallstep/zlint v0.0.0-20180727184541-d84eaafe274f
 	github.com/stretchr/testify v1.7.0
 	github.com/urfave/cli v1.22.5
-	go.mozilla.org/pkcs7 v0.0.0-20200128120323-432b2356ecb1
-	go.step.sm/cli-utils v0.4.1 // indirect
-	go.step.sm/crypto v0.9.0
-	go.step.sm/linkedca v0.0.0-20210611183751-27424aae8d25
-	golang.org/x/crypto v0.0.0-20210616213533-5ff15b29337e
-	golang.org/x/net v0.0.0-20210614182718-04defd469f4e
-	golang.org/x/sys v0.0.0-20210630005230-0f9fa26af87c
+	go.mozilla.org/pkcs7 v0.0.0-20210826202110-33d05740a352
+	go.step.sm/cli-utils v0.6.0
+	go.step.sm/crypto v0.11.0
+	go.step.sm/linkedca v0.7.0
+	golang.org/x/crypto v0.0.0-20210915214749-c084706c2272
+	golang.org/x/net v0.0.0-20210913180222-943fd674d43e
+	golang.org/x/sys v0.0.0-20210915083310-ed5796bab164
 	golang.org/x/term v0.0.0-20210503060354-a79de5458b56
 	google.golang.org/protobuf v1.27.1
-	gopkg.in/square/go-jose.v2 v2.5.1
+	gopkg.in/square/go-jose.v2 v2.6.0
 	software.sslmate.com/src/go-pkcs12 v0.0.0-20201103104416-57fc603b7f52
 )
 
